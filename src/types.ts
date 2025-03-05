@@ -1,5 +1,5 @@
 /**
- * 搜索结果接口
+ * Search result interface
  */
 export interface SearchResult {
   title: string;
@@ -8,7 +8,7 @@ export interface SearchResult {
 }
 
 /**
- * 搜索响应接口
+ * Search response interface
  */
 export interface SearchResponse {
   query: string;
@@ -16,13 +16,13 @@ export interface SearchResponse {
 }
 
 /**
- * 命令行选项接口
+ * Command line options interface
  */
 export interface CommandOptions {
   limit?: number;
   timeout?: number;
-  headless?: boolean; // 已废弃，但保留以兼容现有代码
+  headless?: boolean; // Deprecated, but kept for compatibility with existing code
   stateFile?: string;
   noSaveState?: boolean;
-  locale?: string; // 搜索结果语言，默认为中文(zh-CN)
+  locale?: string; // Search results language, default is Chinese(zh-CN)
 }

@@ -121,7 +121,7 @@ export async function googleSearch(
   // 忽略传入的headless参数，总是以无头模式启动
   let useHeadless = true;
 
-  logger.info({ options }, "正在初始化浏览器...");
+  logger.info({ options }, "Executing Google search");
 
   // 检查是否存在状态文件
   let storageState: string | undefined = undefined;
@@ -133,7 +133,7 @@ export async function googleSearch(
   if (fs.existsSync(stateFile)) {
     logger.info(
       { stateFile },
-      "发现浏览器状态文件，将使用保存的浏览器状态以避免反机器人检测"
+      "Found browser state file, will use saved browser state to avoid robot detection"
     );
     storageState = stateFile;
 
@@ -142,15 +142,15 @@ export async function googleSearch(
       try {
         const fingerprintData = fs.readFileSync(fingerprintFile, "utf8");
         savedState = JSON.parse(fingerprintData);
-        logger.info("已加载保存的浏览器指纹配置");
+        logger.info("Loaded saved browser fingerprint configuration");
       } catch (e) {
-        logger.warn({ error: e }, "无法加载指纹配置文件，将创建新的指纹");
+        logger.warn({ error: e }, "Unable to load fingerprint configuration file, will create new fingerprint");
       }
     }
   } else {
     logger.info(
       { stateFile },
-      "未找到浏览器状态文件，将创建新的浏览器会话和指纹"
+      "No browser state file found, will create new browser session and fingerprint"
     );
   }
 
@@ -211,11 +211,11 @@ export async function googleSearch(
     if (existingBrowser) {
       browser = existingBrowser;
       browserWasProvided = true;
-      logger.info("使用已存在的浏览器实例");
+      logger.info("Using existing browser instance");
     } else {
       logger.info(
         { headless },
-        `准备以${headless ? "无头" : "有头"}模式启动浏览器...`
+        `Preparing to start browser in ${headless ? "headless" : "headed"} mode...`
       );
 
       // 初始化浏览器，添加更多参数以避免检测
@@ -252,7 +252,7 @@ export async function googleSearch(
         ignoreDefaultArgs: ["--enable-automation"],
       });
 
-      logger.info("浏览器已成功启动!");
+      logger.info("Browser started successfully!");
     }
 
     // 获取设备配置 - 使用保存的或随机生成
@@ -273,7 +273,7 @@ export async function googleSearch(
         reducedMotion: savedState.fingerprint.reducedMotion,
         forcedColors: savedState.fingerprint.forcedColors,
       };
-      logger.info("使用保存的浏览器指纹配置");
+      logger.info("Using saved browser fingerprint configuration");
     } else {
       // 获取宿主机器的实际设置
       const hostConfig = getHostMachineConfig(locale);
@@ -282,7 +282,7 @@ export async function googleSearch(
       if (hostConfig.deviceName !== deviceName) {
         logger.info(
           { deviceType: hostConfig.deviceName },
-          "根据宿主机器设置使用设备类型"
+          "Using device type based on host machine settings"
         );
         // 使用新的设备配置
         contextOptions = { ...devices[hostConfig.deviceName] };
@@ -306,7 +306,7 @@ export async function googleSearch(
           colorScheme: hostConfig.colorScheme,
           deviceType: hostConfig.deviceName,
         },
-        "已根据宿主机器生成新的浏览器指纹配置"
+        "Generated new browser fingerprint configuration based on host machine"
       );
     }
 
@@ -321,7 +321,7 @@ export async function googleSearch(
     };
 
     if (storageState) {
-      logger.info("正在加载保存的浏览器状态...");
+      logger.info("Loading saved browser state...");
     }
 
     const context = await browser.newContext(
@@ -382,16 +382,16 @@ export async function googleSearch(
       let selectedDomain: string;
       if (savedState.googleDomain) {
         selectedDomain = savedState.googleDomain;
-        logger.info({ domain: selectedDomain }, "使用保存的Google域名");
+        logger.info({ domain: selectedDomain }, "Using saved Google domain");
       } else {
         selectedDomain =
           googleDomains[Math.floor(Math.random() * googleDomains.length)];
         // 保存选择的域名
         savedState.googleDomain = selectedDomain;
-        logger.info({ domain: selectedDomain }, "随机选择Google域名");
+        logger.info({ domain: selectedDomain }, "Randomly selected Google domain");
       }
 
-      logger.info("正在访问Google搜索页面...");
+      logger.info("Accessing Google search page...");
 
       // 访问Google搜索页面
       const response = await page.goto(selectedDomain, {
@@ -417,7 +417,7 @@ export async function googleSearch(
 
       if (isBlockedPage) {
         if (headless) {
-          logger.warn("检测到人机验证页面，将以有头模式重新启动浏览器...");
+          logger.warn("Detected blocked page, will restart browser in headed mode...");
 
           // 关闭当前页面和上下文
           await page.close();
@@ -426,7 +426,7 @@ export async function googleSearch(
           // 如果是外部提供的浏览器，不关闭它，而是创建一个新的浏览器实例
           if (browserWasProvided) {
             logger.info(
-              "使用外部浏览器实例时遇到人机验证，创建新的浏览器实例..."
+              "Using external browser instance when encountering blocked page, creating new browser instance..."
             );
             // 创建一个新的浏览器实例，不再使用外部提供的实例
             const newBrowser = await chromium.launch({
@@ -486,7 +486,7 @@ export async function googleSearch(
             return performSearch(false); // 以有头模式重新执行搜索
           }
         } else {
-          logger.warn("检测到人机验证页面，请在浏览器中完成验证...");
+          logger.warn("Detected blocked page, please complete verification in the browser...");
           // 等待用户完成验证并重定向回搜索页面
           await page.waitForNavigation({
             timeout: timeout * 2,
@@ -497,11 +497,11 @@ export async function googleSearch(
               );
             },
           });
-          logger.info("人机验证已完成，继续搜索...");
+          logger.info("Human verification completed, continuing search...");
         }
       }
 
-      logger.info({ query }, "正在输入搜索关键词");
+      logger.info({ query }, "Inputting search keywords");
 
       // 等待搜索框出现 - 尝试多个可能的选择器
       const searchInputSelectors = [
@@ -518,14 +518,14 @@ export async function googleSearch(
       for (const selector of searchInputSelectors) {
         searchInput = await page.$(selector);
         if (searchInput) {
-          logger.info({ selector }, "找到搜索框");
+          logger.info({ selector }, "Found search input");
           break;
         }
       }
 
       if (!searchInput) {
-        logger.error("无法找到搜索框");
-        throw new Error("无法找到搜索框");
+        logger.error("Unable to find search input");
+        throw new Error("Unable to find search input");
       }
 
       // 直接点击搜索框，减少延迟
@@ -538,7 +538,7 @@ export async function googleSearch(
       await page.waitForTimeout(getRandomDelay(100, 300));
       await page.keyboard.press("Enter");
 
-      logger.info("正在等待页面加载完成...");
+      logger.info("Waiting for page load to complete...");
 
       // 等待页面加载完成
       await page.waitForLoadState("networkidle", { timeout });
@@ -552,7 +552,7 @@ export async function googleSearch(
       if (isBlockedAfterSearch) {
         if (headless) {
           logger.warn(
-            "搜索后检测到人机验证页面，将以有头模式重新启动浏览器..."
+            "Detected blocked page after search, will restart browser in headed mode..."
           );
 
           // 关闭当前页面和上下文
@@ -562,7 +562,7 @@ export async function googleSearch(
           // 如果是外部提供的浏览器，不关闭它，而是创建一个新的浏览器实例
           if (browserWasProvided) {
             logger.info(
-              "使用外部浏览器实例时搜索后遇到人机验证，创建新的浏览器实例..."
+              "Using external browser instance when encountering blocked page after search, creating new browser instance..."
             );
             // 创建一个新的浏览器实例，不再使用外部提供的实例
             const newBrowser = await chromium.launch({
@@ -622,7 +622,7 @@ export async function googleSearch(
             return performSearch(false); // 以有头模式重新执行搜索
           }
         } else {
-          logger.warn("搜索后检测到人机验证页面，请在浏览器中完成验证...");
+          logger.warn("Detected blocked page after search, please complete verification in the browser...");
           // 等待用户完成验证并重定向回搜索页面
           await page.waitForNavigation({
             timeout: timeout * 2,
@@ -633,14 +633,14 @@ export async function googleSearch(
               );
             },
           });
-          logger.info("人机验证已完成，继续搜索...");
+          logger.info("Human verification completed, continuing search...");
 
           // 等待页面重新加载
           await page.waitForLoadState("networkidle", { timeout });
         }
       }
 
-      logger.info({ url: page.url() }, "正在等待搜索结果加载...");
+      logger.info({ url: page.url() }, "Waiting for search results to load...");
 
       // 尝试多个可能的搜索结果选择器
       const searchResultSelectors = [
@@ -655,7 +655,7 @@ export async function googleSearch(
       for (const selector of searchResultSelectors) {
         try {
           await page.waitForSelector(selector, { timeout: timeout / 2 });
-          logger.info({ selector }, "找到搜索结果");
+          logger.info({ selector }, "Found search result");
           resultsFound = true;
           break;
         } catch (e) {
@@ -673,7 +673,7 @@ export async function googleSearch(
         if (isBlockedDuringResults) {
           if (headless) {
             logger.warn(
-              "等待搜索结果时检测到人机验证页面，将以有头模式重新启动浏览器..."
+              "Detected blocked page during search results, will restart browser in headed mode..."
             );
 
             // 关闭当前页面和上下文
@@ -683,7 +683,7 @@ export async function googleSearch(
             // 如果是外部提供的浏览器，不关闭它，而是创建一个新的浏览器实例
             if (browserWasProvided) {
               logger.info(
-                "使用外部浏览器实例时等待搜索结果遇到人机验证，创建新的浏览器实例..."
+                "Using external browser instance when encountering blocked page during search results, creating new browser instance..."
               );
               // 创建一个新的浏览器实例，不再使用外部提供的实例
               const newBrowser = await chromium.launch({
@@ -744,7 +744,7 @@ export async function googleSearch(
             }
           } else {
             logger.warn(
-              "等待搜索结果时检测到人机验证页面，请在浏览器中完成验证..."
+              "Detected blocked page during search results, please complete verification in the browser..."
             );
             // 等待用户完成验证并重定向回搜索页面
             await page.waitForNavigation({
@@ -756,13 +756,13 @@ export async function googleSearch(
                 );
               },
             });
-            logger.info("人机验证已完成，继续搜索...");
+            logger.info("Human verification completed, continuing search...");
 
             // 再次尝试等待搜索结果
             for (const selector of searchResultSelectors) {
               try {
                 await page.waitForSelector(selector, { timeout: timeout / 2 });
-                logger.info({ selector }, "验证后找到搜索结果");
+                logger.info({ selector }, "Verified and found search result");
                 resultsFound = true;
                 break;
               } catch (e) {
@@ -771,21 +771,21 @@ export async function googleSearch(
             }
 
             if (!resultsFound) {
-              logger.error("无法找到搜索结果元素");
-              throw new Error("无法找到搜索结果元素");
+              logger.error("Unable to find search result element");
+              throw new Error("Unable to find search result element");
             }
           }
         } else {
           // 如果不是人机验证问题，则抛出错误
-          logger.error("无法找到搜索结果元素");
-          throw new Error("无法找到搜索结果元素");
+          logger.error("Unable to find search result element");
+          throw new Error("Unable to find search result element");
         }
       }
 
       // 减少等待时间
       await page.waitForTimeout(getRandomDelay(200, 500));
 
-      logger.info("正在提取搜索结果...");
+      logger.info("Extracting search results...");
 
       // 提取搜索结果 - 尝试多种选择器组合
       const resultSelectors = [
@@ -851,7 +851,7 @@ export async function googleSearch(
           );
 
           if (results.length > 0) {
-            logger.info({ selector: selector.container }, "成功提取到结果");
+            logger.info({ selector: selector.container }, "Successfully extracted results");
             break;
           }
         } catch (e) {
@@ -861,7 +861,7 @@ export async function googleSearch(
 
       // 如果所有选择器都失败，尝试一个更通用的方法
       if (results.length === 0) {
-        logger.info("使用备用方法提取搜索结果...");
+        logger.info("Using fallback method to extract search results...");
         results = await page.$$eval(
           "a[href^='http']",
           (elements: Element[], maxResults: number) => {
@@ -905,12 +905,12 @@ export async function googleSearch(
         );
       }
 
-      logger.info({ count: results.length }, "成功获取到搜索结果");
+      logger.info({ count: results.length }, "Successfully retrieved search results");
 
       try {
         // 保存浏览器状态（除非用户指定了不保存）
         if (!noSaveState) {
-          logger.info({ stateFile }, "正在保存浏览器状态...");
+          logger.info({ stateFile }, "Saving browser state...");
 
           // 确保目录存在
           const stateDir = path.dirname(stateFile);
@@ -920,7 +920,7 @@ export async function googleSearch(
 
           // 保存状态
           await context.storageState({ path: stateFile });
-          logger.info("浏览器状态保存成功!");
+          logger.info("Browser state saved successfully!");
 
           // 保存指纹配置
           try {
@@ -929,23 +929,23 @@ export async function googleSearch(
               JSON.stringify(savedState, null, 2),
               "utf8"
             );
-            logger.info({ fingerprintFile }, "指纹配置已保存");
+            logger.info({ fingerprintFile }, "Fingerprint configuration saved");
           } catch (fingerprintError) {
-            logger.error({ error: fingerprintError }, "保存指纹配置时发生错误");
+            logger.error({ error: fingerprintError }, "Error saving fingerprint configuration");
           }
         } else {
-          logger.info("根据用户设置，不保存浏览器状态");
+          logger.info("According to user settings, browser state will not be saved");
         }
       } catch (error) {
-        logger.error({ error }, "保存浏览器状态时发生错误");
+        logger.error({ error }, "Error saving browser state");
       }
 
       // 只有在浏览器不是外部提供的情况下才关闭浏览器
       if (!browserWasProvided) {
-        logger.info("正在关闭浏览器...");
+        logger.info("Closing browser...");
         await browser.close();
       } else {
-        logger.info("保持浏览器实例打开状态");
+        logger.info("Keeping browser instance open");
       }
 
       // 返回搜索结果
@@ -954,12 +954,12 @@ export async function googleSearch(
         results,
       };
     } catch (error) {
-      logger.error({ error }, "搜索过程中发生错误");
+      logger.error({ error }, "Search process error");
 
       try {
         // 尝试保存浏览器状态，即使发生错误
         if (!noSaveState) {
-          logger.info({ stateFile }, "正在保存浏览器状态...");
+          logger.info({ stateFile }, "Saving browser state...");
           const stateDir = path.dirname(stateFile);
           if (!fs.existsSync(stateDir)) {
             fs.mkdirSync(stateDir, { recursive: true });
@@ -973,21 +973,21 @@ export async function googleSearch(
               JSON.stringify(savedState, null, 2),
               "utf8"
             );
-            logger.info({ fingerprintFile }, "指纹配置已保存");
+            logger.info({ fingerprintFile }, "Fingerprint configuration saved");
           } catch (fingerprintError) {
-            logger.error({ error: fingerprintError }, "保存指纹配置时发生错误");
+            logger.error({ error: fingerprintError }, "Error saving fingerprint configuration");
           }
         }
       } catch (stateError) {
-        logger.error({ error: stateError }, "保存浏览器状态时发生错误");
+        logger.error({ error: stateError }, "Error saving browser state");
       }
 
       // 只有在浏览器不是外部提供的情况下才关闭浏览器
       if (!browserWasProvided) {
-        logger.info("正在关闭浏览器...");
+        logger.info("Closing browser...");
         await browser.close();
       } else {
-        logger.info("保持浏览器实例打开状态");
+        logger.info("Keeping browser instance open");
       }
 
       // 创建一个模拟的搜索结果，以便在出错时仍能返回一些信息
@@ -995,9 +995,9 @@ export async function googleSearch(
         query,
         results: [
           {
-            title: "搜索失败",
+            title: "Search failed",
             link: "",
-            snippet: `无法完成搜索，错误信息: ${
+            snippet: `Unable to complete search, error message: ${
               error instanceof Error ? error.message : String(error)
             }`,
           },

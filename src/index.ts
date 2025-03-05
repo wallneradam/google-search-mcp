@@ -4,35 +4,35 @@ import { Command } from "commander";
 import { googleSearch } from "./search.js";
 import { CommandOptions } from "./types.js";
 
-// 获取包信息
+// Get package information
 import packageJson from "../package.json" with { type: "json" };
 
-// 创建命令行程序
+// Create command line program
 const program = new Command();
 
-// 配置命令行选项
+// Configure command line options
 program
   .name("google-search")
-  .description("基于 Playwright 的 Google 搜索 CLI 工具")
+  .description("Google Search CLI tool based on Playwright")
   .version(packageJson.version)
-  .argument("<query>", "搜索关键词")
-  .option("-l, --limit <number>", "结果数量限制", parseInt, 10)
-  .option("-t, --timeout <number>", "超时时间(毫秒)", parseInt, 30000)
-  .option("--no-headless", "已废弃: 现在总是先尝试无头模式，如果遇到人机验证会自动切换到有头模式")
-  .option("--state-file <path>", "浏览器状态文件路径", "./browser-state.json")
-  .option("--no-save-state", "不保存浏览器状态")
+  .argument("<query>", "Search keywords")
+  .option("-l, --limit <number>", "Result count limit", parseInt, 10)
+  .option("-t, --timeout <number>", "Timeout in milliseconds", parseInt, 30000)
+  .option("--no-headless", "Deprecated: Now always tries headless mode first, automatically switching to headed mode if CAPTCHA is encountered")
+  .option("--state-file <path>", "Browser state file path", "./browser-state.json")
+  .option("--no-save-state", "Don't save browser state")
   .action(async (query: string, options: CommandOptions) => {
     try {
-      // 执行搜索
+      // Execute search
       const results = await googleSearch(query, options);
 
-      // 输出结果
+      // Output results
       console.log(JSON.stringify(results, null, 2));
     } catch (error) {
-      console.error("错误:", error);
+      console.error("Error:", error);
       process.exit(1);
     }
   });
 
-// 解析命令行参数
+// Parse command line arguments
 program.parse(process.argv);

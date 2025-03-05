@@ -3,21 +3,21 @@ import * as path from "path";
 import * as fs from "fs";
 import * as os from "os";
 
-// 使用系统临时目录，确保跨平台兼容性
+// Use system temporary directory to ensure cross-platform compatibility
 const logDir = path.join(os.tmpdir(), "google-search-logs");
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
-// 创建日志文件路径
+// Create log file path
 const logFilePath = path.join(logDir, "google-search.log");
 
-// 创建pino日志实例
+// Create pino logger instance
 const logger = pino({
-  level: process.env.LOG_LEVEL || "info", // 可通过环境变量设置日志级别
+  level: process.env.LOG_LEVEL || "info", // Log level can be set via environment variable
   transport: {
     targets: [
-      // 输出到控制台，使用pino-pretty美化输出
+      // Output to console, using pino-pretty for formatting
       {
         target: "pino-pretty",
         level: "info",
@@ -27,33 +27,33 @@ const logger = pino({
           ignore: "pid,hostname",
         },
       },
-      // 输出到文件 - 使用trace级别确保捕获所有日志
+      // Output to file - use trace level to capture all logs
       {
         target: "pino/file",
-        level: "trace", // 使用最低级别以捕获所有日志
+        level: "trace", // Use lowest level to capture all logs
         options: { destination: logFilePath },
       },
     ],
   },
 });
 
-// 添加进程退出时的处理
+// Add handler for process exit
 process.on("exit", () => {
-  logger.info("进程退出，日志关闭");
+  logger.info("Process exiting, closing logs");
 });
 
 process.on("SIGINT", () => {
-  logger.info("收到SIGINT信号，日志关闭");
+  logger.info("Received SIGINT signal, closing logs");
   process.exit(0);
 });
 
 process.on("SIGTERM", () => {
-  logger.info("收到SIGTERM信号，日志关闭");
+  logger.info("Received SIGTERM signal, closing logs");
   process.exit(0);
 });
 
 process.on("uncaughtException", (error) => {
-  logger.error({ err: error }, "未捕获的异常");
+  logger.error({ err: error }, "Uncaught exception");
   process.exit(1);
 });
 
