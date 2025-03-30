@@ -2,10 +2,6 @@
 
 A Playwright-based Node.js tool that bypasses search engine anti-scraping mechanisms to execute Google searches and extract results. It can be used directly as a command-line tool or as a Model Context Protocol (MCP) server to provide real-time search capabilities to AI assistants like Claude.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=web-agent-master/google-search&type=Date)](https://star-history.com/#web-agent-master/google-search&Date)
-
-[中文文档](README.zh-CN.md)
-
 ## Key Features
 
 - **Local SERP API Alternative**: No need to rely on paid search engine results API services, all searches are executed locally
@@ -34,8 +30,8 @@ A Playwright-based Node.js tool that bypasses search engine anti-scraping mechan
 
 ```bash
 # Install from source
-git clone https://github.com/web-agent-master/google-search.git
-cd google-search
+git clone https://github.com/wallneradam/google-search-mcp.git
+cd google-search-mcp
 # Install dependencies
 npm install
 # Or using yarn
