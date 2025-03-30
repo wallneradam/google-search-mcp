@@ -116,10 +116,11 @@ export async function googleSearch(
     stateFile = "./browser-state.json",
     noSaveState = false,
     locale = "zh-CN", // 默认使用中文
+    headless = true, // Use headless parameter from command line options
   } = options;
 
-  // 忽略传入的headless参数，总是以无头模式启动
-  let useHeadless = true;
+  // Use headless parameter from command line options
+  let useHeadless = headless;
 
   logger.info({ options }, "Executing Google search");
 
@@ -343,8 +344,8 @@ export async function googleSearch(
       // @ts-ignore - 忽略 chrome 属性不存在的错误
       window.chrome = {
         runtime: {},
-        loadTimes: function () {},
-        csi: function () {},
+        loadTimes: function () { },
+        csi: function () { },
         app: {},
       };
 
@@ -398,6 +399,28 @@ export async function googleSearch(
         timeout,
         waitUntil: "networkidle",
       });
+
+      // Handle cookie consent dialog
+      try {
+        // Try to find and click the cookie accept button
+        const cookieAcceptSelectors = [
+          "button[id='L2AGLb']",
+          "button.tHlp8d",
+          "div.QS5gu.sy4vM",
+        ];
+
+        for (const selector of cookieAcceptSelectors) {
+          const cookieButton = await page.$(selector);
+          if (cookieButton) {
+            logger.info({ selector }, "Found cookie consent button, clicking it");
+            await cookieButton.click();
+            await page.waitForTimeout(1000);
+            break;
+          }
+        }
+      } catch (e) {
+        logger.warn({ error: e }, "Error handling cookie consent, will continue anyway");
+      }
 
       // 检查是否被重定向到人机验证页面
       const currentUrl = page.url();
@@ -997,9 +1020,8 @@ export async function googleSearch(
           {
             title: "Search failed",
             link: "",
-            snippet: `Unable to complete search, error message: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
+            snippet: `Unable to complete search, error message: ${error instanceof Error ? error.message : String(error)
+              }`,
           },
         ],
       };
